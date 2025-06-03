@@ -38,13 +38,13 @@ public class RecipeManagerMixin {
                             Lists.newArrayList(
                                     '#'
                             ),
-                            Lists.newArrayList(ResourceLocation.parse(set[i])),
+                            Lists.newArrayList(new ResourceLocation(set[i])),
                             Lists.newArrayList("item"),
                             Lists.newArrayList(
                                     "#  ",
                                     "## "
                             ),
-                            ResourceLocation.parse(set[set.length - 1]), BetterStairsCraftingConfig.stair_amount);
+                            new ResourceLocation(set[set.length - 1]), BetterStairsCraftingConfig.stair_amount);
                 }
             }
         }
