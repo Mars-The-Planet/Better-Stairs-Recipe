@@ -161,7 +161,6 @@ public class RecipeManagerMixin {
 
         // Extract the candidate character from row[0].charAt(0)
         char c = rows[0].charAt(0);
-        // It must not be a space, otherwise we cannot form a non‐empty staircase
         if (c == ' ') {
             return false;
         }
