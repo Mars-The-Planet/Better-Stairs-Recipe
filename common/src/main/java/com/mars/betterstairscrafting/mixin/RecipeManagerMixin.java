@@ -1,55 +1,85 @@
 package com.mars.betterstairscrafting.mixin;
 
 import com.google.common.collect.Lists;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
+import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import com.mars.betterstairscrafting.BetterStairsCraftingConfig;
 import com.mars.deimos.datagen.DeimosRecipeGenerator;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.RecipeMap;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.*;
 
 import static com.mars.betterstairscrafting.BetterStairsCraftingConfig.add_recipes_manually;
 
 @Mixin(value = RecipeManager.class, priority = 900)
 public class RecipeManagerMixin {
-    @Inject(method = "apply", at = @At("HEAD"))
-    private void onRecipesLoaded(Map<ResourceLocation, JsonElement> map, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo info) {
+    @Inject(method = "prepare", at = @At("TAIL"), cancellable = true)
+    private void onRecipesLoaded(ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfoReturnable<RecipeMap> cir,
+                                  @Local LocalRef<List<RecipeHolder<?>>> list) {
         if(add_recipes_manually)
             return;
+        SortedMap<ResourceLocation, JsonElement> rawJsonMap = new TreeMap<>();
+        String recipesPath = Registries.elementsDirPath(Registries.RECIPE);
 
-        System.out.println(map.size());
-        for (var entry : map.entrySet()) {
-            if(hasStairsPattern(entry.getValue())){
-                String[] set = extractKeyAndResult(entry.getValue());
-                for (int i = 0; i < set.length - 1; i++) {
-                    DeimosRecipeGenerator.createShapedRecipeJson(
-                            Lists.newArrayList(
-                                    '#'
-                            ),
-                            Lists.newArrayList(ResourceLocation.parse(set[i])),
-                            Lists.newArrayList("item"),
-                            Lists.newArrayList(
-                                    "#  ",
-                                    "## "
-                            ),
-                            ResourceLocation.parse(set[set.length - 1]), BetterStairsCraftingConfig.stair_amount);
+        Map<ResourceLocation, Resource> allRecipeResources = resourceManager.listResources(
+                recipesPath,
+                // filter predicate: only keep paths ending in ".json"
+                rl -> rl.getPath().endsWith(".json")
+        );
+
+
+        // Iterate over each ResourceLocation key in that map
+        for (ResourceLocation loc : allRecipeResources.keySet()) {
+            Optional<Resource> optRes = resourceManager.getResource(loc);
+            if (optRes.isEmpty()) {
+                // If getResource couldn’t actually open it, skip
+                continue;
+            }
+
+            try (Reader reader = optRes.get().openAsReader()) {
+                JsonElement je = JsonParser.parseReader(reader);
+                rawJsonMap.put(loc, je);
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+
+        for (Map.Entry<ResourceLocation, JsonElement> entry : rawJsonMap.entrySet()) {
+            JsonElement je = entry.getValue();
+            if (hasStairsPattern(je)) {
+                String[] set = extractKeyAndResult(je);
+                if(set != null){
+                    for (int i = 0; i < set.length - 1; i++) {
+                        DeimosRecipeGenerator.createShapedRecipeJson(
+                                Lists.newArrayList('#'),
+                                Lists.newArrayList(ResourceLocation.parse(set[i])),
+                                Lists.newArrayList("item"),
+                                Lists.newArrayList("#  ", "## "),
+                                ResourceLocation.parse(set[set.length - 1]),
+                                BetterStairsCraftingConfig.stair_amount
+                        );
+                    }
                 }
             }
         }
     }
 
+    @Unique
     private static String[] extractKeyAndResult(JsonElement root) {
         JsonObject obj = root.getAsJsonObject();
 
@@ -59,7 +89,7 @@ public class RecipeManagerMixin {
         char c = row0.charAt(0);
         String charKey = String.valueOf(c);
 
-        // Read key[c], which may be an object or an array
+        // Read key[c], which may be a JsonPrimitive (string) or a JsonArray of strings
         if (!obj.has("key")) {
             return null;
         }
@@ -71,16 +101,12 @@ public class RecipeManagerMixin {
 
         List<String> baseItems = new ArrayList<>();
 
-        if (charEntry.isJsonObject()) {
-            JsonObject charObj = charEntry.getAsJsonObject();
-            if (!charObj.has("item")) {
+        if (charEntry.isJsonPrimitive()) {
+            JsonPrimitive prim = charEntry.getAsJsonPrimitive();
+            if (!prim.isString()) {
                 return null;
             }
-            JsonElement itemElem = charObj.get("item");
-            if (!itemElem.isJsonPrimitive() || !((JsonPrimitive) itemElem).isString()) {
-                return null;
-            }
-            baseItems.add(itemElem.getAsString());
+            baseItems.add(prim.getAsString());
 
         } else if (charEntry.isJsonArray()) {
             JsonArray arr = charEntry.getAsJsonArray();
@@ -88,19 +114,16 @@ public class RecipeManagerMixin {
                 return null;
             }
             for (JsonElement elt : arr) {
-                if (!elt.isJsonObject()) {
+                if (!elt.isJsonPrimitive()) {
                     return null;
                 }
-                JsonObject eltObj = elt.getAsJsonObject();
-                if (!eltObj.has("item")) {
+                JsonPrimitive p = elt.getAsJsonPrimitive();
+                if (!p.isString()) {
                     return null;
                 }
-                JsonElement itemElem = eltObj.get("item");
-                if (!itemElem.isJsonPrimitive() || !((JsonPrimitive) itemElem).isString()) {
-                    return null;
-                }
-                baseItems.add(itemElem.getAsString());
+                baseItems.add(p.getAsString());
             }
+
         } else {
             return null;
         }
@@ -129,6 +152,7 @@ public class RecipeManagerMixin {
         return output;
     }
 
+    @Unique
     private static boolean hasStairsPattern(JsonElement element) {
         JsonObject obj = element.getAsJsonObject();
         if (!obj.has("pattern")) {

@@ -1,6 +1,6 @@
 {
   "betterstairscrafting.deimosconfig.title": "Craft Slabs Back Into Blocks Config",
   "betterstairscrafting.deimosconfig.stair_amount": "How many stairs you get",
-  "betterstairscrafting.deimosconfig.add_recipes_manually": "Stops generating stair recipes automatically and generates based on the list bellow",
+  "betterstairscrafting.deimosconfig.add_recipes_manually": "Stop generating stair recipes automatically and generate them based on the list bellow",
   "betterstairscrafting.deimosconfig.block_stairs_list": "List of blocks and the matching stairs you craft from them"
 }
