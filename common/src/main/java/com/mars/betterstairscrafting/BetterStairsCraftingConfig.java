@@ -7,6 +7,7 @@ import java.util.List;
 
 public class BetterStairsCraftingConfig extends DeimosConfig {
     @Entry public static int stair_amount = 3;
+    @Entry public static boolean add_recipes_manually = false;
     @Entry public static List<String> block_stairs_list = Lists.newArrayList(
             "minecraft:acacia_planks, minecraft:acacia_stairs",
             "minecraft:andesite, minecraft:andesite_stairs",
