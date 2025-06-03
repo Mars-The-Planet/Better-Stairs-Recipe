@@ -4,7 +4,7 @@
 <a href="https://ko-fi.com/mars_" ><img src="https://img.shields.io/badge/ko--fi-donate-FF5E5B?style=for-the-badge&amp;logo=ko-fi&amp;logoColor=white" alt="Support me on ko-fi" /></a>
 </strong></h5></center>
 <center><p style="text-align: center;">With this fully automated and configurable mod, you can craft stairs using just three blocks, allowing you to craft them directly from your inventory without needing a crafting table. This also makes the crafting recipe match the actual shape of stairs in the game. </p>
-<p style="text-align: center;">These new recipes are generated automatically. Firstly, the mod scans for every recipe that resembles a stairs recipe. Then it creates a new 2×2 stairs recipe for each one it detects. In the config file, you can adjust the number of stairs you get, and if you want, you can manually add more stair variants.</p>
+<p style="text-align: center;">These new recipes are generated automatically, making it compatible with almost every other mod. Firstly, the mod scans for every recipe that resembles a stairs recipe. Then it creates a new 2×2 stairs recipe for each one it detects. In the config file, you can adjust the number of stairs you get, and if you want, you can manually add more stair variants.</p>
 <p style="text-align: center;"><img src="https://i.imgur.com/Os1SS3p.png"/></p></center>
 <details>
 <summary><strong>Configuration</strong></summary>
