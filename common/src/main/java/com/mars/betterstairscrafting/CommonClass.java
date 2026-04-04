@@ -3,7 +3,7 @@ package com.mars.betterstairscrafting;
 import com.google.common.collect.Lists;
 import com.mars.deimos.config.DeimosConfig;
 import com.mars.deimos.datagen.DeimosRecipeGenerator;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import static com.mars.betterstairscrafting.BetterStairsCraftingConfig.add_recipes_manually;
 import static com.mars.betterstairscrafting.Constants.MOD_ID;
@@ -21,13 +21,13 @@ public class CommonClass {
                         Lists.newArrayList(
                                 '#'
                         ),
-                        Lists.newArrayList(ResourceLocation.parse(set[0])),
+                        Lists.newArrayList(Identifier.parse(set[0])),
                         Lists.newArrayList("item"),
                         Lists.newArrayList(
                                 "#  ",
                                 "## "
                         ),
-                        ResourceLocation.parse(set[1]), BetterStairsCraftingConfig.stair_amount);
+                        Identifier.parse(set[1]), BetterStairsCraftingConfig.stair_amount);
             }
         }
     }
