@@ -29,7 +29,6 @@ public class RecipeManagerMixin {
         if(add_recipes_manually)
             return;
 
-        System.out.println(map.size());
         for (var entry : map.entrySet()) {
             if(hasStairsPattern(entry.getValue())){
                 String[] set = extractKeyAndResult(entry.getValue());
